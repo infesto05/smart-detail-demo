@@ -46,7 +46,7 @@
 <script>
     // --- AUTH & SETUP ---
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || user.role !== 'customer') window.location.href = 'login.html';
+    if (!user || user.role !== 'customer') window.location.href = 'index.html';
     document.getElementById('welcome-user').textContent = `Hi, ${user.name}!`;
 
     function logout() {
