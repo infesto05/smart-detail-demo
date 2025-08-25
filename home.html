@@ -76,7 +76,7 @@
 <script>
     // --- AUTH & SETUP ---
     const user = JSON.parse(localStorage.getItem('user'));
-    if (!user || user.role !== 'manager') window.location.href = 'login.html';
+    if (!user || user.role !== 'manager') window.location.href = 'index.html';
     document.getElementById('welcome-user').textContent = `Welcome, ${user.name || 'Manager'}`;
 
     const subcategories = {
