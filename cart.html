@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Retail - Your Cart</title>
+  <style>
+    @keyframes slideIn { 0% { opacity: 0; transform: translateX(80px); } 100% { opacity: 1; transform: translateX(0); } }
+    body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; flex-direction: row; min-height: 100vh; background: linear-gradient(to right, #eef2f3, #8e9eab); color: #333; }
+    .sidebar { width: 240px; background: linear-gradient(135deg, #2b87f3, #1b4fa0); color: white; position: fixed; top: 0; left: 0; height: 100vh; display: flex; flex-direction: column; padding-top: 40px; box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2); z-index: 1000; }
+    .sidebar h2 { margin-bottom: 20px; font-weight: normal; text-align: center; }
+    .sidebar a { padding: 15px 25px; color: white; text-decoration: none; font-size: 16px; transition: background 0.2s; }
+    .sidebar a:hover { background: rgba(255, 255, 255, 0.1); }
+    .main-content { margin-left: 240px; padding: 40px; flex: 1; animation: slideIn 0.7s ease-out forwards; background: linear-gradient(to right, #f0f4ff, #e4f9ff); }
+    h2 { font-size: 28px; margin-bottom: 20px; }
+    .cart-item { display: flex; justify-content: space-between; align-items: center; background: #fff; padding: 20px; margin-bottom: 15px; border-radius: 14px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08); max-width: 700px; }
+    .cart-item h4 { font-size: 20px; color: #2b87f3; margin: 0; }
+    .cart-item p { margin: 0; font-size: 18px; font-weight: bold; }
+    .summary-box { text-align: center; margin-top: 40px; font-size: 18px; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 400px; margin-left: auto; margin-right: auto; }
+    .summary-box p { margin: 10px 0; }
+    #total-cost { font-weight: bold; color: #2b87f3; font-size: 22px; }
+    .checkout-btn { display: block; width: 100%; max-width: 400px; margin: 20px auto 0 auto; background: #28a745; color: white; padding: 15px 20px; border: none; border-radius: 8px; font-size: 18px; cursor: pointer; transition: background 0.2s; }
+    .checkout-btn:hover { background: #218838; }
+    .empty-cart-msg { text-align: center; font-size: 18px; color: #555; margin-top: 50px; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2 id="welcome-user">Welcome!</h2>
+  <a href="customer.html">🏠 Home</a>
+  <a href="cart.html">🛒 Cart</a>
+  <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-content">
+  <h2>🛒 Your Shopping Cart</h2>
+  <div id="cart-list"></div>
+  <div id="summary-section" style="display: none;">
+      <div class="summary-box">
+        <p>Total Items: <span id="total-count">0</span></p>
+        <p>Total Cost: ₹<span id="total-cost">0.00</span></p>
+      </div>
+      <button class="checkout-btn" onclick="placeOrder()">✅ Place Order</button>
+  </div>
+</div>
+
+<script>
+    // --- AUTH & SETUP ---
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'customer') window.location.href = 'login.html';
+    document.getElementById('welcome-user').textContent = `Hi, ${user.name}!`;
+
+    function logout() {
+      localStorage.removeItem('user');
+      localStorage.removeItem('cart');
+      window.location.href = 'login.html';
+    }
+
+    // --- CART LOGIC ---
+    function loadCart() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        const list = document.getElementById('cart-list');
+        const summary = document.getElementById('summary-section');
+        let totalCost = 0;
+
+        if (cart.length === 0) {
+            list.innerHTML = '<p class="empty-cart-msg">Your cart is currently empty. Go add some products!</p>';
+            summary.style.display = 'none';
+        } else {
+            list.innerHTML = ''; // Clear previous items
+            cart.forEach(p => {
+                const price = p.finalPrice || p.originalPrice;
+                totalCost += price;
+                list.innerHTML += `
+                    <div class="cart-item">
+                        <h4>${p.name}</h4>
+                        <p>₹${price.toFixed(2)}</p>
+                    </div>`;
+            });
+
+            document.getElementById('total-count').textContent = cart.length;
+            document.getElementById('total-cost').textContent = totalCost.toFixed(2);
+            summary.style.display = 'block';
+        }
+    }
+
+    function placeOrder() {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        if (cart.length === 0) {
+            alert("Your cart is empty. Cannot place an order.");
+            return;
+        }
+        
+        // Simulate placing an order
+        alert("✅ Order placed successfully!\nThank you for your purchase.");
+        
+        // Clear the cart from localStorage
+        localStorage.removeItem('cart');
+        
+        // Redirect back to the customer homepage
+        window.location.href = 'customer.html';
+    }
+
+    // --- INITIAL LOAD ---
+    loadCart();
+</script>
+</body>
+</html>

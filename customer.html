@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Smart Retail - Customer Dashboard</title>
+  <style>
+    @keyframes slideIn { 0% { opacity: 0; transform: translateX(80px); } 100% { opacity: 1; transform: translateX(0); } }
+    body { margin: 0; font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: row; min-height: 100vh; background: linear-gradient(to right, #eef2f3, #8e9eab); color: #333; overflow-x: hidden; }
+    .sidebar { width: 240px; background: linear-gradient(135deg, #2b87f3, #1b4fa0); color: white; position: fixed; top: 0; left: 0; height: 100vh; display: flex; flex-direction: column; padding-top: 40px; box-shadow: 4px 0 10px rgba(0, 0, 0, 0.2); z-index: 1000; }
+    .sidebar h2 { margin-bottom: 20px; font-weight: normal; text-align: center; }
+    .sidebar a { padding: 15px 25px; color: white; text-decoration: none; font-size: 16px; transition: background 0.2s; }
+    .sidebar a:hover { background: rgba(255, 255, 255, 0.1); }
+    .main-content { margin-left: 240px; padding: 40px; flex: 1; background: linear-gradient(to right, #f0f4ff, #e4f9ff); animation: slideIn 0.7s ease-out forwards; }
+    h2 { font-size: 28px; margin-bottom: 20px; }
+    .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .filters select { padding: 10px; border: none; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .product-card { background: #fff; padding: 20px; border-radius: 14px; box-shadow: 0 8px 16px rgba(0,0,0,0.08); transition: transform 0.3s; display: flex; flex-direction: column; }
+    .product-card:hover { transform: translateY(-5px); }
+    .product-card h4 { margin-bottom: 8px; font-size: 20px; color: #2b87f3; }
+    .product-card p { flex-grow: 1; }
+    .product-card button { margin-top: 10px; padding: 10px 14px; background: #2b87f3; color: white; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s; }
+    .product-card button:hover { background: #1866c3; }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2 id="welcome-user">Welcome!</h2>
+  <a href="customer.html">🏠 Home</a>
+  <a href="cart.html">🛒 Cart</a>
+  <a href="#" onclick="logout()">🚪 Logout</a>
+</div>
+
+<div class="main-content">
+  <h2>Products For Sale</h2>
+  <div class="filters">
+    <select id="filter-category"><option value="All">All Categories</option><option value="Perishable">Perishable</option><option value="Non-Perishable">Non-Perishable</option></select>
+    <select id="filter-subcategory"><option value="All">All Subcategories</option></select>
+  </div>
+  <div class="product-grid" id="product-list"></div>
+</div>
+
+<script src="data.js"></script>
+
+<script>
+    // --- AUTH & SETUP ---
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user || user.role !== 'customer') window.location.href = 'login.html';
+    document.getElementById('welcome-user').textContent = `Hi, ${user.name}!`;
+
+    const subcategories = {
+      Perishable: ["Meat and Poultry", "Fish and Seafood", "Dairy Products", "Eggs", "Fresh Fruits and Vegetables", "Cooked Foods"],
+      "Non-Perishable": ["Canned Goods", "Dry Goods", "Packaged Snacks", "Condiments and Sauces", "Oils and Fats", "Powdered and Dehydrated Foods", "Nuts and Nut Butters"]
+    };
+
+    function logout() {
+      localStorage.removeItem('user');
+      localStorage.removeItem('cart'); // Clear cart on logout
+      window.location.href = 'login.html';
+    }
+
+    // --- DYNAMIC PRICING & UTILITIES ---
+    function calculateDynamicPrice(product) {
+        const today = new Date();
+        const expiry = new Date(product.expiryDate);
+        const daysLeft = (expiry - today) / (1000 * 3600 * 24);
+        if (daysLeft <= 0) return product.originalPrice * 0.5;
+        if (daysLeft < 3) return product.originalPrice * 0.7;
+        if (daysLeft < 7) return product.originalPrice * 0.85;
+        return product.originalPrice;
+    }
+
+    function getExpiryCountdown(expiryDateStr) {
+        const today = new Date();
+        const expiryDate = new Date(expiryDateStr);
+        const daysLeft = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+        if (daysLeft < 0) return `<span style="color: red;">⚠️ Expired</span>`;
+        if (daysLeft <= 3) return `<span style="color: orange;">⏳ ${daysLeft} day(s) left</span>`;
+        return `<span style="color: green;">🕒 ${daysLeft} day(s) left</span>`;
+    }
+
+    // --- CORE LOGIC (READING PRODUCTS, ADDING TO CART) ---
+    function loadProducts() {
+      const allProducts = JSON.parse(localStorage.getItem('products') || '[]');
+      const category = document.getElementById('filter-category').value;
+      const subcategory = document.getElementById('filter-subcategory').value;
+      const list = document.getElementById('product-list');
+      list.innerHTML = '';
+
+      const filteredProducts = allProducts
+        .filter(p => category === 'All' || p.category === category)
+        .filter(p => subcategory === 'All' || p.subcategory === subcategory);
+
+      filteredProducts.forEach(p => {
+        const dynamicPrice = calculateDynamicPrice(p);
+        p.finalPrice = dynamicPrice; // Add final price to object for cart
+        list.innerHTML += `
+          <div class="product-card">
+            <h4>${p.name}</h4>
+            <p>${p.category} > ${p.subcategory}</p>
+            <p>Original Price: <del>₹${p.originalPrice}</del></p>
+            <p><strong>Offer Price: ₹${dynamicPrice.toFixed(2)}</strong></p>
+            <p>${getExpiryCountdown(p.expiryDate)}</p>
+            <button onclick='addToCart(${JSON.stringify(p)})'>Add to Cart</button>
+          </div>`;
+      });
+    }
+    
+    function addToCart(product) {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        cart.push(product);
+        localStorage.setItem('cart', JSON.stringify(cart));
+        alert(`${product.name} has been added to your cart!`);
+    }
+
+    // --- EVENT LISTENERS ---
+    document.getElementById('filter-category').addEventListener('change', function () {
+      const selected = this.value;
+      const sub = document.getElementById('filter-subcategory');
+      sub.innerHTML = '<option value="All">All Subcategories</option>';
+      if (subcategories[selected]) {
+        sub.innerHTML += subcategories[selected].map(sc => `<option value="${sc}">${sc}</option>`).join('');
+      }
+      loadProducts();
+    });
+    document.getElementById('filter-subcategory').addEventListener('change', loadProducts);
+
+    // --- INITIAL LOAD ---
+    loadProducts();
+</script>
+</body>
+</html>

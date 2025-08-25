@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - Smart Retail</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f4ff; margin: 0; }
+        .register-box { padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; width: 320px; }
+        h2 { color: #1b4fa0; }
+        input { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #2b87f3; color: white; cursor: pointer; border: none; border-radius: 8px; font-size: 16px; transition: background-color 0.2s; }
+        button:hover { background-color: #1866c3; }
+        p { margin-top: 15px; }
+        a { color: #2b87f3; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="register-box">
+        <h2>Create Account</h2>
+        <input type="text" id="name" placeholder="Full Name" required>
+        <input type="email" id="email" placeholder="Email Address" required>
+        <input type="password" id="password" placeholder="Password" required>
+        <button onclick="registerUser()">Register</button>
+        <p>Already have an account? <a href="login.html">Login here</a></p>
+    </div>
+
+    <script>
+        function registerUser() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            if (!name || !email || !password) {
+                alert('Please fill out all fields.');
+                return;
+            }
+
+            // Get existing users or initialize an empty array
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+            // Check if user already exists
+            const existingUser = users.find(u => u.email === email);
+            if (existingUser) {
+                alert('An account with this email already exists. Please login.');
+                return;
+            }
+
+            // Add the new user
+            // NOTE: In a real app, NEVER store plain text passwords. This is for demo purposes only.
+            const newUser = { name, email, password };
+            users.push(newUser);
+
+            // Save the updated user list back to localStorage
+            localStorage.setItem('users', JSON.stringify(users));
+
+            alert('Registration successful! You can now log in.');
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Smart Retail</title>
+    <style> /* Add some basic styling */
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f4ff; }
+        .login-box { padding: 40px; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); text-align: center; }
+        input, select, button { width: 100%; padding: 10px; margin: 8px 0; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box; }
+        button { background-color: #2b87f3; color: white; cursor: pointer; border: none; }
+        a { color: #2b87f3; }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h2>Login</h2>
+        <input type="email" id="email" placeholder="Email (e.g., manager@test.com)">
+        <input type="password" id="password" placeholder="Password (any)">
+        <select id="role">
+            <option value="manager">Manager</option>
+            <option value="customer">Customer</option>
+        </select>
+        <button onclick="login()">Login</button>
+        <p>No account? <a href="register.html">Register here</a></p>
+    </div>
+
+    <script>
+        function login() {
+            const email = document.getElementById('email').value;
+            const role = document.getElementById('role').value;
+            
+            if (!email) {
+                alert('Please enter an email.');
+                return;
+            }
+
+            // In a real app, you'd verify this. Here, we just trust the user.
+            // We'll check if a user with this email exists from registration.
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const existingUser = users.find(u => u.email === email);
+
+            if (!existingUser) {
+                alert('User not found. Please register first.');
+                return;
+            }
+
+            // Set the logged-in user
+            const user = {
+                name: existingUser.name,
+                email: email,
+                role: role // Role is selected at login for this demo
+            };
+
+            localStorage.setItem('user', JSON.stringify(user));
+
+            if (role === 'manager') {
+                window.location.href = 'home.html';
+            } else {
+                window.location.href = 'customer.html';
+            }
+        }
+    </script>
+</body>
+</html>
